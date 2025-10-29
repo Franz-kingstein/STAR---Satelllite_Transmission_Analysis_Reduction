@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r requirements_cloud.txt
-    startCommand: streamlit run app_cloud.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true
+    startCommand: ./start_cloud.sh
     envVars:
       - key: STREAMLIT_SERVER_HEADLESS
         value: "true"
