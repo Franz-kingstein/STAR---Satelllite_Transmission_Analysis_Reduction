@@ -1,0 +1,18 @@
+{
+  "builds": [
+    {
+      "src": "app_cloud.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "app_cloud.py"
+    }
+  ],
+  "env": {
+    "STREAMLIT_SERVER_HEADLESS": "true",
+    "STREAMLIT_SERVER_PORT": "8080"
+  }
+}

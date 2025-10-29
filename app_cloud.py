@@ -1,21 +1,5 @@
-# Streamlit Cloud Deployment Guide
-# Deploy your STAR project to Streamlit Community Cloud (FREE)
-
-## 🌟 Why Streamlit Cloud is Perfect for Your Project
-
-- ✅ **FREE hosting** for public repositories
-- ✅ **Built for Streamlit apps** (your exact use case)
-- ✅ **Auto-deploys** from GitHub (like Netlify)
-- ✅ **Easy setup** - just connect GitHub
-- ✅ **Professional URLs** - great for portfolios
-- ✅ **No server management** required
-
-## 🚀 Step-by-Step Deployment
-
-### Step 1: Prepare Your App for Cloud Deployment
-
-# Create a simplified version that works with Streamlit Cloud
-# We'll use a smaller dataset or connect to cloud MongoDB
+# Streamlit Cloud Deployment - STAR Analysis
+# Cloud-optimized version of the STAR project
 
 import streamlit as st
 import pandas as pd
@@ -29,9 +13,7 @@ import random
 @st.cache_data
 def load_sample_data():
     """Load a sample of the Hipparcos data for cloud deployment"""
-    # In production, this would connect to MongoDB Atlas
-    # For now, we'll create a representative sample
-    
+    # Generate sample star data for demonstration
     np.random.seed(42)  # For reproducible results
     
     # Generate sample star data
@@ -71,7 +53,7 @@ page = st.sidebar.selectbox(
 
 # Display connection info
 st.sidebar.success(f"✅ {len(df):,} stars loaded")
-st.sidebar.info("🌥️ Running on Streamlit Cloud")
+st.sidebar.info("🌥️ Running on Cloud")
 
 if page == "📊 Overview":
     st.header("📊 Dataset Overview")

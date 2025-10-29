@@ -6,9 +6,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 import random
+import os
 from datetime import datetime
 
-st.set_page_config(page_title="🌟 Hipparcos Explorer", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(
+    page_title="🌟 STAR - Satellite Analysis", 
+    page_icon="🌟",
+    layout="wide", 
+    initial_sidebar_state="expanded"
+)
 
 # Sidebar navigation
 st.sidebar.title("🚀 Navigation")
@@ -17,33 +23,94 @@ page = st.sidebar.selectbox(
     ["📊 Overview", "🌟 Star Explorer", "📈 HR Diagram", "🎯 Star Search", "🌌 Space Facts", "📡 Mission Info"]
 )
 
-st.title("🌟 Hipparcos Star Catalog Explorer")
-st.markdown("*Exploring the cosmos through the Hipparcos satellite data*")
+st.title("🌟 STAR - Satellite Transmission Analysis Reduction")
+st.markdown("*Hipparcos Star Catalog Data Analysis and Visualization Platform*")
 
-# Connect to MongoDB with clear errors
+# MongoDB connection with Docker support
 @st.cache_resource
-def get_collection(uri="mongodb://localhost:27017/", db_name="hippparcos_db", coll="stars"):
-    client = MongoClient(uri, serverSelectionTimeoutMS=3000)
-    client.admin.command("ping")  # raises if not reachable
-    return client[db_name][coll]
+def get_collection():
+    """Get MongoDB collection with Docker environment support"""
+    try:
+        # Get MongoDB URI from environment variable (Docker) or use default (local)
+        uri = os.getenv('MONGODB_URI', 'mongodb://localhost:27017/hippparcos_db')
+        
+        # Show connection info in sidebar
+        with st.sidebar:
+            connection_display = uri.split('@')[-1] if '@' in uri else uri
+            st.info(f"🔗 Database: `{connection_display}`")
+        
+        # Connect with appropriate timeout
+        client = MongoClient(uri, serverSelectionTimeoutMS=10000)
+        
+        # Test connection
+        client.server_info()
+        
+        # Access database and collection
+        db = client["hippparcos_db"]
+        collection = db["stars"]
+        
+        # Verify collection has data
+        total_docs = collection.count_documents({})
+        if total_docs == 0:
+            st.error("❌ No data found in database.")
+            st.info("🔧 Data import may still be in progress. Please wait or refresh the page.")
+            
+            # Check if we're in Docker and show import status
+            if os.path.exists('/.dockerenv'):
+                st.info("🐳 Running in Docker - data import should complete automatically")
+            else:
+                st.info("💻 Running locally - run `python import_data.py` to import data")
+            st.stop()
+        
+        # Success message in sidebar
+        with st.sidebar:
+            st.success(f"✅ Connected! {total_docs:,} stars loaded")
+            
+            # Show deployment info
+            is_docker = os.path.exists('/.dockerenv')
+            if is_docker:
+                st.success("🐳 Running in Docker")
+            else:
+                st.info("💻 Running locally")
+        
+        return collection
+        
+    except ServerSelectionTimeoutError as e:
+        st.error(f"❌ MongoDB connection timeout: {e}")
+        show_connection_troubleshooting()
+        st.stop()
+        
+    except Exception as e:
+        st.error(f"❌ Database connection failed: {e}")
+        show_connection_troubleshooting()
+        st.stop()
 
-collection = None
-error = None
-try:
-    collection = get_collection()
-except ServerSelectionTimeoutError as e:
-    error = f"MongoDB not reachable on 27017. Start Docker container 'mongodb'. Details: {e}"
-except Exception as e:
-    error = f"MongoDB error: {e}"
+def show_connection_troubleshooting():
+    """Show troubleshooting information for connection issues"""
+    with st.expander("🔧 Troubleshooting Connection Issues"):
+        st.write("**Possible solutions:**")
+        
+        if os.path.exists('/.dockerenv'):
+            st.write("🐳 **Docker Environment Detected:**")
+            st.write("1. MongoDB container may still be starting up")
+            st.write("2. Wait 30-60 seconds and refresh the page")
+            st.write("3. Check Docker logs: `docker-compose logs mongodb`")
+        else:
+            st.write("💻 **Local Environment Detected:**")
+            st.write("1. Start MongoDB: `docker-compose up -d mongodb`")
+            st.write("2. Import data: `python import_data.py`")
+            st.write("3. Check MongoDB is running: `docker ps`")
+        
+        st.write("**General checks:**")
+        st.write("4. Verify network connectivity")
+        st.write("5. Check MongoDB URI in environment variables")
+        
+        if st.button("🔄 Retry Connection"):
+            st.cache_resource.clear()
+            st.rerun()
 
-if error:
-    st.error(error)
-    st.stop()
-
-# Only proceed if collection is available
-if collection is None:
-    st.error("Failed to connect to MongoDB. Please check your connection.")
-    st.stop()
+# Get database connection
+collection = get_collection()
 
 # Space facts and interesting data
 space_facts = [
